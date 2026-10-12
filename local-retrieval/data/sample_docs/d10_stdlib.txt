@@ -1,0 +1,1 @@
+这个项目零第三方依赖，只用 Python 标准库。sqlite3、json、pathlib、hashlib 都在标准库里，装一个第三方库就破坏了卖点。

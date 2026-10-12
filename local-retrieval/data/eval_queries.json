@@ -1,0 +1,25 @@
+{
+  "description": "20 条固定查询，expect_doc_id 为人工标注的正确答案（语料为合成文档，标注按构造给出，召回口径 = 期望文档出现在 Top3）。",
+  "queries": [
+    {"id": "Q01", "query": "怎么防止数据库丢数据", "expect_doc_id": "d01_backup"},
+    {"id": "Q02", "query": "测试", "expect_doc_id": "d05_testing"},
+    {"id": "Q03", "query": "中文没有空格怎么分词", "expect_doc_id": "d02_bigram"},
+    {"id": "Q04", "query": "全文索引引擎", "expect_doc_id": "d03_fts5"},
+    {"id": "Q05", "query": "搜索结果怎么排序", "expect_doc_id": "d04_bm25"},
+    {"id": "Q06", "query": "怎么写单元测试", "expect_doc_id": "d05_testing"},
+    {"id": "Q07", "query": "怎么防止读文件越界", "expect_doc_id": "d06_path"},
+    {"id": "Q08", "query": "路径越界要怎么办", "expect_doc_id": "d06_path"},
+    {"id": "Q09", "query": "错误归一化的顺序", "expect_doc_id": "d07_normalize"},
+    {"id": "Q10", "query": "编号前缀要先剥掉", "expect_doc_id": "d07_normalize"},
+    {"id": "Q11", "query": "评测用例怎么设计", "expect_doc_id": "d08_cases"},
+    {"id": "Q12", "query": "对抗用例是干什么的", "expect_doc_id": "d08_cases"},
+    {"id": "Q13", "query": "打分为什么不能用主观", "expect_doc_id": "d09_scorer"},
+    {"id": "Q14", "query": "客观断言怎么写", "expect_doc_id": "d09_scorer"},
+    {"id": "Q15", "query": "为什么不用第三方库", "expect_doc_id": "d10_stdlib"},
+    {"id": "Q16", "query": "标准库都有什么", "expect_doc_id": "d10_stdlib"},
+    {"id": "Q17", "query": "索引太大怎么办", "expect_doc_id": "d11_rank"},
+    {"id": "Q18", "query": "检索怎么优化", "expect_doc_id": "d11_rank"},
+    {"id": "Q19", "query": "面试时讲哪些重点", "expect_doc_id": "d12_interview"},
+    {"id": "Q20", "query": "虚拟表怎么建", "expect_doc_id": "d03_fts5"}
+  ]
+}

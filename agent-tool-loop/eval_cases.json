@@ -1,0 +1,25 @@
+{
+  "description": "选对工具正确率评测用例（20 条：search_history 7 / calc 5 / read_note 6 / 无需工具 2）。判定：首个工具调用 = 期望工具 + 关键参数一致 + 最终回答包含期望关键词。后端：ScriptedBackend（离线确定性，非真实 LLM）。",
+  "cases": [
+    {"id": "C01", "input": "帮我搜索历史会话里关于「二元分词」的讨论", "expect_tool": "search_history", "expect_args": {"keyword": "二元分词"}, "expect_answer_contains": ["找到 2 条"]},
+    {"id": "C02", "input": "查一下历史里聊过的「prompt 评测」", "expect_tool": "search_history", "expect_args": {"keyword": "prompt 评测"}, "expect_answer_contains": ["找到 2 条"]},
+    {"id": "C03", "input": "搜索关于备份的记录", "expect_tool": "search_history", "expect_args": {"keyword": "备份"}, "expect_answer_contains": ["找到 1 条"]},
+    {"id": "C04", "input": "在历史会话里检索「单元测试」最多返回 10 条", "expect_tool": "search_history", "expect_args": {"keyword": "单元测试", "limit": 10}, "expect_answer_contains": ["找到 1 条"]},
+    {"id": "C05", "input": "帮我搜索一下。", "expect_tool": "search_history", "expect_args": {"keyword": ""}, "expect_answer_contains": ["keyword 不能为空"]},
+    {"id": "C06", "input": "找一下历史里关于「错误归一化」的讨论", "expect_tool": "search_history", "expect_args": {"keyword": "错误归一化"}, "expect_answer_contains": ["找到 1 条"]},
+    {"id": "C07", "input": "帮我搜索历史里关于「数据库」的内容", "expect_tool": "search_history", "expect_args": {"keyword": "数据库"}, "expect_answer_contains": ["找到 1 条"]},
+    {"id": "C08", "input": "计算 3*(4+5)", "expect_tool": "calc", "expect_args": {"expression": "3*(4+5)"}, "expect_answer_contains": ["27"]},
+    {"id": "C09", "input": "帮我算一下 12 / 5", "expect_tool": "calc", "expect_args": {"expression": "12 / 5"}, "expect_answer_contains": ["2.4"]},
+    {"id": "C10", "input": "算算 2**10 等于多少", "expect_tool": "calc", "expect_args": {"expression": "2**10"}, "expect_answer_contains": ["1024"]},
+    {"id": "C11", "input": "7 % 3 等于多少", "expect_tool": "calc", "expect_args": {"expression": "7 % 3"}, "expect_answer_contains": ["计算结果是 1"]},
+    {"id": "C12", "input": "算一下 100 % 7", "expect_tool": "calc", "expect_args": {"expression": "100 % 7"}, "expect_answer_contains": ["计算结果是 2"]},
+    {"id": "C13", "input": "帮我读一下「todo.txt」", "expect_tool": "read_note", "expect_args": {"name": "todo.txt"}, "expect_answer_contains": ["已读取笔记「todo.txt」"]},
+    {"id": "C14", "input": "打开 todo.txt 看看", "expect_tool": "read_note", "expect_args": {"name": "todo.txt"}, "expect_answer_contains": ["已读取笔记「todo.txt」"]},
+    {"id": "C15", "input": "看看「meeting_notes.txt」里写了什么", "expect_tool": "read_note", "expect_args": {"name": "meeting_notes.txt"}, "expect_answer_contains": ["meeting_notes.txt"]},
+    {"id": "C16", "input": "读一下 roadmap.md", "expect_tool": "read_note", "expect_args": {"name": "roadmap.md"}, "expect_answer_contains": ["roadmap.md"]},
+    {"id": "C17", "input": "帮我打开「todo.txt」", "expect_tool": "read_note", "expect_args": {"name": "todo.txt"}, "expect_answer_contains": ["已读取笔记「todo.txt」"]},
+    {"id": "C18", "input": "读一下 missing.txt", "expect_tool": "read_note", "expect_args": {"name": "missing.txt"}, "expect_answer_contains": ["文件不存在"]},
+    {"id": "C19", "input": "你好，请介绍一下你自己", "expect_tool": null, "expect_args": {}, "expect_answer_contains": ["不需要工具"]},
+    {"id": "C20", "input": "今天天气怎么样？", "expect_tool": null, "expect_args": {}, "expect_answer_contains": ["不需要工具"]}
+  ]
+}

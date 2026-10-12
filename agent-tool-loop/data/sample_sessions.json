@@ -1,0 +1,16 @@
+[
+  {"session_id": "s01", "role": "user", "content": "我们讨论一下二元分词的实现思路吧", "created_at": "2026-10-06 09:00"},
+  {"session_id": "s01", "role": "assistant", "content": "好，中文没有空格，可以用二元切分把句子拆成两字词", "created_at": "2026-10-06 09:01"},
+  {"session_id": "s02", "role": "user", "content": "FTS5 的默认分词器对中文没用，一整句会被当成一个词", "created_at": "2026-10-06 10:00"},
+  {"session_id": "s02", "role": "assistant", "content": "所以要自己写分词再建索引", "created_at": "2026-10-06 10:01"},
+  {"session_id": "s03", "role": "user", "content": "二元分词的缺点是索引变大，不过查询很准", "created_at": "2026-10-07 09:00"},
+  {"session_id": "s04", "role": "user", "content": "prompt 评测要用固定用例，不能凭感觉", "created_at": "2026-10-07 14:00"},
+  {"session_id": "s04", "role": "assistant", "content": "对，25 条用例分四类：正常、边界、异常、对抗", "created_at": "2026-10-07 14:01"},
+  {"session_id": "s05", "role": "user", "content": "今天把 prompt 评测的打分器写完了", "created_at": "2026-10-08 10:00"},
+  {"session_id": "s06", "role": "user", "content": "数据库要定期备份，防止丢数据", "created_at": "2026-10-08 16:00"},
+  {"session_id": "s07", "role": "user", "content": "单元测试要覆盖异常路径和空数据，不能只测正常流程", "created_at": "2026-10-09 09:30"},
+  {"session_id": "s08", "role": "user", "content": "read_note 工具要拦住路径越界，比如不能读 secret.txt", "created_at": "2026-10-09 15:00"},
+  {"session_id": "s09", "role": "user", "content": "错误归一化要先剥前缀再掩码ID最后折叠数字，顺序不能乱", "created_at": "2026-10-10 09:00"},
+  {"session_id": "s10", "role": "user", "content": "明天继续优化检索排序", "created_at": "2026-10-10 18:00"},
+  {"session_id": "s10", "role": "assistant", "content": "好，先用 bm25 排序看效果", "created_at": "2026-10-10 18:01"}
+]
