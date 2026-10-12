@@ -42,13 +42,16 @@ jobs:
   reproduce-numbers:
     name: reproduce reported numbers
     runs-on: ubuntu-latest
+    # ⚠️ env 必须写在 job 级（与 steps 同级、缩进 4）。
+    #    之前误写成与 `- uses:` 同缩进（6），steps 下就变成"序列+映射"混排，
+    #    GitHub 解析直接失败，**一个 job 都不会起**。
+    env:
+      PYTHONIOENCODING: utf-8
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.13"
-      env:
-        PYTHONIOENCODING: utf-8
       # 这三条会打印 README 上引用的那组数字。
       # 别人克隆下来能自己复算 —— 这比"相信我"有用得多。
       - name: tool selection 20 cases
