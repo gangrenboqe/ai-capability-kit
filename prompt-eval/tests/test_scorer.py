@@ -1,6 +1,12 @@
 """scorer 测试：断言通过/失败、边界值、非法用例、汇总一致性。"""
 import unittest
 
+# 保证从仓库根目录也能跑（CI 就是这么跑的）。
+# 少了这两行，这些测试**只有 cd 进项目目录才通过** —— 自测覆盖不到真实用法。
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from scorer import check_assertions, score_all
 
 

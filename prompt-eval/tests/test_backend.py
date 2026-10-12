@@ -4,6 +4,12 @@ import os
 import unittest
 from unittest import mock
 
+# 保证从仓库根目录也能跑（CI 就是这么跑的）。
+# 少了这两行，这些测试**只有 cd 进项目目录才通过** —— 自测覆盖不到真实用法。
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from backend import BackendError, OfflineSimModel, OpenAICompatModel
 
 SYS_V1 = "你是 DSHPersonalAI 项目的技术助手。请回答用户的问题。"
