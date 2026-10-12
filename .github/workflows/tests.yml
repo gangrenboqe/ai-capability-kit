@@ -1,0 +1,61 @@
+name: tests
+
+# 每个 push / PR 自动跑一遍全部工具的测试。
+# 目的：README 上写的"70 / 32 / 42 项全过"不是一句要相信作者的话，
+# 而是每次都由机器重跑。
+
+# 踩过的坑（Windows 分支，别改回去）：
+# 1) Windows runner 默认用 PowerShell 执行命令。带中文 + 引号的命令会被解析坏，
+#    所以 run: 里只写 ASCII，中文只出现在注释和步骤名里。
+# 2) Windows 控制台不是 UTF-8，Python 打印中文会炸，所以固定 PYTHONIOENCODING。
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  tests:
+    name: py ${{ matrix.python-version }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python-version: ["3.11", "3.13"]
+    env:
+      PYTHONIOENCODING: utf-8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: agent-tool-loop
+        run: python -m unittest discover -s agent-tool-loop/tests
+
+      - name: local-retrieval
+        run: python -m unittest discover -s local-retrieval/tests
+
+      - name: prompt-eval
+        run: python -m unittest discover -s prompt-eval/tests
+
+  reproduce-numbers:
+    name: reproduce reported numbers
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      env:
+        PYTHONIOENCODING: utf-8
+      # 这三条会打印 README 上引用的那组数字。
+      # 别人克隆下来能自己复算 —— 这比"相信我"有用得多。
+      - name: tool selection 20 cases
+        run: python agent-tool-loop/eval_selection.py
+
+      - name: retrieval accuracy
+        run: python local-retrieval/demo.py
+
+      - name: prompt compare
+        run: python prompt-eval/run.py --compare
