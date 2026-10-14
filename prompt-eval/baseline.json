@@ -1,0 +1,7 @@
+{
+  "passed": 25,
+  "total": 25,
+  "backend": "OfflineSimModel（离线确定性模拟，非真实 LLM）",
+  "updated": "2026-10-14",
+  "note": "只能用 python regression.py --update-baseline 显式更新；回归检查绝不写此文件"
+}

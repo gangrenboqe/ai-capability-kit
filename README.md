@@ -37,10 +37,25 @@ cd prompt-eval && python run.py --compare
 ```bash
 cd agent-tool-loop && python -m unittest discover -s tests   # 70 项
 cd local-retrieval  && python -m unittest discover -s tests   # 32 项
-cd prompt-eval      && python -m unittest discover -s tests   # 42 项
+cd prompt-eval      && python -m unittest discover -s tests   # 48 项
 ```
 
 全部在 **Python 3.11 与 3.13 双版本**下验证通过。**依赖：无。**
+
+### v4 自动回归：提示词评测已进 CI，变差自动亮红灯
+
+```bash
+cd prompt-eval
+python regression.py                    # 跑 v3 全部 25 条用例，与 baseline.json 比对：好 / 持平 / 差
+python regression.py --update-baseline  # 显式把本次成绩写为新基线（改基线的唯一方式）
+```
+
+- **退出码**：0 = 持平或更好；**1 = 差于基线**；2 = 基线缺失/环境错误。
+- **CI**（`.github/workflows/regression.yml`）：push / PR / 每周一定时自动跑；**成绩差于基线时 job 直接变红**——不是打印个分数就完事，是门禁。
+- **基线不会自动上涨**：回归检查绝不写 `baseline.json`，基线只能用 `--update-baseline` 显式更新。
+  这是门禁不失效的关键——否则每次跑完自动抬基线，红灯永远不亮。
+- **变差了怎么办**：输出会列出具体回退的用例和失败断言；先修回来，确属可接受的新水平再经人工确认更新基线。
+- 实测演练（2026-10-14）：删掉 v3 的【简洁】守则 → 23/25、列出 N05/X04 超长 → 退出码 1；恢复后回到 25/25、退出码 0，期间基线文件一个字节没变。机制级断言见 `prompt-eval/tests/test_regression.py`。
 
 ---
 
@@ -123,3 +138,4 @@ cd prompt-eval      && python -m unittest discover -s tests   # 42 项
 - 源目录：本仓库是**发布副本**；开发源在 `../../projects/<工具名>/`
 - 许可证：MIT
 - 三个工具之间**互不依赖**
+- 📋 **AI 能力边界清单**（AI 能做什么 / 不能做什么 / 七种翻车模式，17 条全部锚定真实事件）：正本在工作区 `portfolio/AI能力边界清单.md`，本仓库不重复正文

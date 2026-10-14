@@ -1,0 +1,20 @@
+name: regression
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    # 每周一 UTC 03:00（北京时间 11:00）定时回归：睡着也在跑
+    - cron: "0 3 * * 1"
+
+jobs:
+  prompt-eval-regression:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Prompt 回归（差于基线则本 job 变红）
+        run: python prompt-eval/regression.py
