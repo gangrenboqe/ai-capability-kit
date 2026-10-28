@@ -1,0 +1,7 @@
+{
+  "passed": 20,
+  "total": 20,
+  "backend": "ScriptedBackend（离线确定性规则，非真实 LLM）",
+  "updated": "2026-10-28",
+  "note": "只能用 --update-baseline 显式更新；回归检查绝不写此文件"
+}

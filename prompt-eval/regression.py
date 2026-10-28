@@ -19,16 +19,25 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from datetime import date
 from pathlib import Path
 
 from backend import OfflineSimModel
-from run import CASES_PATH, DEFAULT_PROMPT, evaluate, load_cases, load_prompt
+from run import CASES_PATH, DEFAULT_PROMPT, evaluate, load_cases, load_prompt, make_backend
 
 ROOT = Path(__file__).resolve().parent
 DEFAULT_BASELINE = ROOT / "baseline.json"
-BACKEND_DESC = "OfflineSimModel（离线确定性模拟，非真实 LLM）"
+LIVE_BASELINE = ROOT / "baseline_live.json"
+
+
+def backend_desc() -> str:
+    mode = (os.environ.get("PAI_EVAL_BACKEND") or "offline").strip().lower()
+    if mode == "live":
+        _, desc = make_backend()
+        return desc
+    return "OfflineSimModel（离线确定性模拟，非真实 LLM）"
 
 
 def compare(current: int, baseline: int) -> str:
@@ -60,7 +69,7 @@ def write_baseline(path: Path, summary: dict) -> None:
     payload = {
         "passed": summary["passed"],
         "total": summary["total"],
-        "backend": BACKEND_DESC,
+        "backend": backend_desc(),
         "updated": date.today().isoformat(),
         "note": "只能用 python regression.py --update-baseline 显式更新；回归检查绝不写此文件",
     }
@@ -68,10 +77,20 @@ def write_baseline(path: Path, summary: dict) -> None:
 
 
 def run_current() -> dict:
-    """跑当前正式版（prompts/v3.md）全部用例，返回汇总。"""
+    """跑当前正式版（prompts/v3.md）全部用例，返回汇总。
+
+    PAI_EVAL_BACKEND=offline（默认）→ 离线确定性；=live → 真实模型（花真金白银）。
+    live 模式基线默认写/读 baseline_live.json，与离线基线互不干扰。
+    """
+    mode = (os.environ.get("PAI_EVAL_BACKEND") or "offline").strip().lower()
     cases = load_cases(CASES_PATH)
+    if mode == "live":
+        quick = os.environ.get("PAI_EVAL_QUICK")
+        if quick:
+            cases = cases[: max(1, int(quick))]
     system = load_prompt(DEFAULT_PROMPT)
-    return evaluate(system, cases, OfflineSimModel())
+    backend, _ = make_backend()
+    return evaluate(system, cases, backend)
 
 
 def render_verdict(current: dict, baseline: dict, cases: list[dict]) -> tuple[str, str]:
@@ -112,11 +131,15 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--update-baseline", action="store_true",
                         help="把本次成绩写为新基线（改基线的唯一方式）")
     parser.add_argument("--baseline", type=str, default=None,
-                        help="基线文件路径（默认项目根 baseline.json；测试用）")
+                        help="基线文件路径（默认：offline→baseline.json，live→baseline_live.json）")
     args = parser.parse_args(argv)
 
     try:
-        baseline_path = Path(args.baseline) if args.baseline else DEFAULT_BASELINE
+        if args.baseline:
+            baseline_path = Path(args.baseline)
+        else:
+            mode = (os.environ.get("PAI_EVAL_BACKEND") or "offline").strip().lower()
+            baseline_path = LIVE_BASELINE if mode == "live" else DEFAULT_BASELINE
         current = run_current()
 
         if args.update_baseline:

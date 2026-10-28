@@ -14,11 +14,12 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from datetime import datetime
 from pathlib import Path
 
-from backend import OfflineSimModel
+from backend import OfflineSimModel, OpenAICompatModel
 from scorer import score_all
 
 ROOT = Path(__file__).resolve().parent
@@ -27,6 +28,18 @@ CASES_PATH = ROOT / "cases" / "cases.json"
 OUT_DIR = ROOT / "out"
 
 _CATEGORY_NAMES = {"normal": "正常", "boundary": "边界", "exception": "异常", "adversarial": "对抗"}
+
+
+def make_backend():
+    """按环境变量 PAI_EVAL_BACKEND 选后端：offline（默认，保回归确定性）| live（真实模型）。
+
+    live 需要 AGENT_API_KEY / AGENT_BASE_URL / AGENT_MODEL（密钥只走环境变量，不落盘）。
+    """
+    mode = (os.environ.get("PAI_EVAL_BACKEND") or "offline").strip().lower()
+    if mode == "live":
+        model = OpenAICompatModel()
+        return model, f"OpenAICompatModel（真实模型 {model.model} @ {model.base_url}）"
+    return OfflineSimModel(), "OfflineSimModel（离线确定性模拟，非真实 LLM）"
 
 
 def load_cases(path: Path) -> list[dict]:
@@ -78,7 +91,7 @@ def render_compare(all_summaries: dict[str, dict]) -> str:
         "# Prompt 版本对比",
         "",
         f"- 时间：{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
-        f"- 后端：OfflineSimModel（离线确定性模拟，非真实 LLM）",
+        f"- 后端：{os.environ.get('_PAI_BACKEND_DESC', 'OfflineSimModel（离线确定性模拟，非真实 LLM）')}",
         "- 演进顺序为 v1 → v2 → v3_draft → v3（表格按名称排序，v3_draft 是实测变差后被回退的草稿）",
         "",
         "| 版本 | 通过 | 总数 | 通过率 |",
@@ -102,12 +115,16 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Prompt 评测：跑完用例，输出通过率")
     parser.add_argument("--prompt", type=str, default=None, help="要评测的 prompt 文件（默认 prompts/v3.md）")
     parser.add_argument("--compare", action="store_true", help="prompts/ 下所有版本各跑一遍，出对比表")
+    parser.add_argument("--quick", type=int, default=None,
+                        help="只跑前 N 条（live 省钱档； offline 回归不用）")
     args = parser.parse_args(argv)
 
     cases = load_cases(CASES_PATH)
+    if args.quick:
+        cases = cases[: args.quick]
     OUT_DIR.mkdir(exist_ok=True)
-    backend = OfflineSimModel()
-    backend_desc = "OfflineSimModel（离线确定性模拟，非真实 LLM）"
+    backend, backend_desc = make_backend()
+    os.environ["_PAI_BACKEND_DESC"] = backend_desc
 
     if args.compare:
         prompt_paths = sorted((ROOT / "prompts").glob("*.md"))

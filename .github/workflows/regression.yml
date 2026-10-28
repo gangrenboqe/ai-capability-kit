@@ -6,6 +6,12 @@ on:
   schedule:
     # 每周一 UTC 03:00（北京时间 11:00）定时回归：睡着也在跑
     - cron: "0 3 * * 1"
+  workflow_dispatch:
+    inputs:
+      live:
+        description: "跑真实模型 quick 档（花真金白银，默认关）"
+        type: boolean
+        default: false
 
 jobs:
   prompt-eval-regression:
@@ -18,3 +24,23 @@ jobs:
 
       - name: Prompt 回归（差于基线则本 job 变红）
         run: python prompt-eval/regression.py
+
+  # 🔴 真模型档：只在手动勾选 live=true 时跑（每次 push 不跑 —— 真模型要花钱）。
+  # 需要在仓库 Secrets 配置：AGENT_API_KEY / AGENT_BASE_URL / AGENT_MODEL。
+  # quick 档 = 5 条（成本闸门：几分钱/次）。
+  prompt-eval-live:
+    if: ${{ inputs.live == true }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Live quick 5 cases
+        env:
+          PAI_EVAL_BACKEND: live
+          PAI_EVAL_QUICK: "5"
+          AGENT_API_KEY: ${{ secrets.AGENT_API_KEY }}
+          AGENT_BASE_URL: ${{ secrets.AGENT_BASE_URL }}
+          AGENT_MODEL: ${{ secrets.AGENT_MODEL }}
+        run: python prompt-eval/regression.py --baseline prompt-eval/baseline_live_quick.json
