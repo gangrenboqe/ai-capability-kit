@@ -19,6 +19,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import time
 import urllib.error
 import urllib.request
 
@@ -241,15 +242,36 @@ class OpenAICompatModel:
             headers={"Content-Type": "application/json", "Authorization": f"Bearer {self.api_key}"},
             method="POST",
         )
-        try:
-            # 🔴 2026-10-29 修：本地回环端点**必须绕开本机代理**。
-            #    Windows 上 urllib 默认读注册表代理设置 → 127.0.0.1 的请求被丢给代理转发 → 502/500。
-            #    （同一现象曾让整轮 live 评测误判成"网关坏了"）
-            opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
-            with opener.open(req, timeout=float(os.environ.get('AGENT_TIMEOUT_MS') or 180000) / 1000.0) as resp:
-                data = json.loads(resp.read().decode("utf-8"))
-        except urllib.error.URLError as exc:
-            raise BackendError(f"请求失败: {exc}") from exc
+        # 🔴 2026-10-29 补（WorkBuddy）：本地回环端点必须绕开本机代理
+        #    （Windows 上 urllib 默认读注册表代理 → 127.0.0.1 的请求被丢给代理 → 502/500），
+        #    并按 AGENTS.md 第 2 节硬约束重试：timeout=180s / retries=2，只对超时·429·5xx 重试。
+        #    实测必要性：网关有本地队列上限（requestQueue.maxWaitMs=15000ms），
+        #    连续调用 25 条时会返回 504，不重试整轮就挂。
+        opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+        timeout_s = float(os.environ.get('AGENT_TIMEOUT_MS') or 180000) / 1000.0
+        retries = int(os.environ.get('AGENT_RETRIES') or 2)
+        last_exc = None
+        for attempt in range(retries + 1):
+            try:
+                with opener.open(req, timeout=timeout_s) as resp:
+                    data = json.loads(resp.read().decode("utf-8"))
+                break
+            except urllib.error.HTTPError as exc:
+                # 4xx（除 429）是请求本身的问题，重试无意义 → 立刻失败
+                if exc.code == 429 or 500 <= exc.code < 600:
+                    if attempt < retries:
+                        last_exc = exc
+                        time.sleep(1.5 * (attempt + 1))
+                        continue
+                raise BackendError(f"请求失败: HTTP {exc.code}") from exc
+            except (urllib.error.URLError, TimeoutError, OSError) as exc:
+                if attempt < retries:
+                    last_exc = exc
+                    time.sleep(1.5 * (attempt + 1))
+                    continue
+                raise BackendError(f"请求失败: {exc}") from exc
+        else:
+            raise BackendError(f"重试 {retries} 次仍失败: {last_exc}")
         try:
             message = data["choices"][0]["message"]
         except (KeyError, IndexError, TypeError) as exc:
