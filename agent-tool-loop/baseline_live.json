@@ -1,0 +1,7 @@
+{
+  "passed": 5,
+  "total": 20,
+  "backend": "OpenAICompatBackend（真实模型，函数调用）",
+  "updated": "2026-10-29",
+  "note": "只能用 --update-baseline 显式更新；回归检查绝不写此文件"
+}

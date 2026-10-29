@@ -17,6 +17,8 @@ from __future__ import annotations
 import json
 import os
 import re
+import socket
+import time
 import urllib.error
 import urllib.request
 from dataclasses import dataclass, field
@@ -276,7 +278,7 @@ class OpenAICompatBackend(ModelBackend):
         api_key: str | None = None,
         base_url: str | None = None,
         model: str | None = None,
-        timeout: float = 30,
+        timeout: float = 180,   # 🔴 2026-10-29 改（WorkBuddy）：原 30s 违反 AGENTS.md 第 2 节「timeout=180s」硬约束；真模型 + 工具调用轮次常超 30s → 直接超时
     ) -> None:
         self.api_key = (
             api_key
@@ -291,7 +293,8 @@ class OpenAICompatBackend(ModelBackend):
             or "https://api.openai.com/v1"
         ).rstrip("/")
         self.model = model or os.environ.get("AGENT_MODEL") or "gpt-4o-mini"
-        self.timeout = timeout
+        # 🔴 2026-10-29 改（WorkBuddy）：允许用 AGENT_TIMEOUT 覆盖（毫秒→秒），默认 180s（AGENTS.md 第 2 节硬约束）
+        self.timeout = float(os.environ.get("AGENT_TIMEOUT_MS") or (timeout * 1000)) / 1000.0
         if not self.api_key:
             raise BackendError(
                 "缺少 API Key：请设置环境变量 AGENT_API_KEY（或 OPENAI_API_KEY）。"
@@ -308,14 +311,33 @@ class OpenAICompatBackend(ModelBackend):
             headers={"Content-Type": "application/json", "Authorization": f"Bearer {self.api_key}"},
             method="POST",
         )
-        try:
-            with urllib.request.urlopen(req, timeout=self.timeout) as resp:
-                payload = json.loads(resp.read().decode("utf-8"))
-        except urllib.error.HTTPError as exc:
-            detail = exc.read().decode("utf-8", "replace")[:300]
-            raise BackendError(f"模型接口返回 HTTP {exc.code}: {detail}") from exc
-        except urllib.error.URLError as exc:
-            raise BackendError(f"无法连接模型接口: {exc.reason}") from exc
+        opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+        # 🔴 2026-10-29 改（WorkBuddy）：按 AGENTS.md 第 2 节硬约束补上重试
+        #    「timeout=180s / retries=2，**只对超时 / 5xx / 429 重试**」。
+        #    为什么需要：多轮工具调用时，上一轮未完成下一轮就发 → 网关本地队列等待上限
+        #    （resilienceSettings.requestQueue.maxWaitMs=15000ms）→ **504 Gateway Timeout**。
+        #    504 属于「上游/队列未在时限内完成」，按既定约束应当重试；**不修改网关配置**（AGENTS.md 第 6 节禁区）。
+        attempts = max(1, int(os.environ.get("AGENT_RETRIES") or 2) + 1)
+        last_exc: Exception | None = None
+        for attempt in range(1, attempts + 1):
+            try:
+                with opener.open(req, timeout=self.timeout) as resp:
+                    payload = json.loads(resp.read().decode("utf-8"))
+                break
+            except urllib.error.HTTPError as exc:
+                detail = exc.read().decode("utf-8", "replace")[:300]
+                last_exc = exc
+                # 只对 5xx / 429 / 504（网关队列/上游超时）重试；4xx 其余不重试（重试也不会变好）
+                if exc.code not in (429, 500, 502, 503, 504) or attempt >= attempts:
+                    raise BackendError(f"模型接口返回 HTTP {exc.code}: {detail}") from exc
+                time.sleep(2 * attempt)
+            except (urllib.error.URLError, TimeoutError, socket.timeout) as exc:
+                last_exc = exc
+                if attempt >= attempts:
+                    raise BackendError(f"无法连接模型接口: {exc}") from exc
+                time.sleep(2 * attempt)
+        else:
+            raise BackendError(f"模型接口重试 {attempts} 次仍失败: {last_exc}")
         try:
             message = payload["choices"][0]["message"]
         except (KeyError, IndexError, TypeError) as exc:
@@ -368,7 +390,26 @@ def run_loop(
             )
             return {"answer": resp.content, "round_count": round_no, "stopped": "", "rounds": rounds}
         messages.append(
-            {"role": "assistant", "content": resp.content, "tool_calls": resp.tool_calls}
+            {
+                "role": "assistant",
+                "content": resp.content,
+                # 🔴 2026-10-29 修（WorkBuddy）：发回上游的 assistant.tool_calls **必须是 OpenAI 原生格式**，
+                #    即 {"id", "type":"function", "function":{"name", "arguments":"<JSON 字符串>"}}。
+                #    之前直接把内部简化格式（arguments 是 dict、缺 type/function 嵌套）塞进去
+                #    → 上游校验失败：**400 "Input should be a valid string"**（指 arguments 必须是字符串）。
+                #    🔴 这个 bug **只在接真模型时暴露**——离线模拟后端接受任意格式，所以离线 20/20 全绿也测不出来。
+                "tool_calls": [
+                    {
+                        "id": str(call.get("id") or f"call_{i}"),
+                        "type": "function",
+                        "function": {
+                            "name": str(call.get("name") or ""),
+                            "arguments": json.dumps(call.get("arguments") or {}, ensure_ascii=False),
+                        },
+                    }
+                    for i, call in enumerate(resp.tool_calls)
+                ],
+            }
         )
         results: list[dict[str, Any]] = []
         for call in resp.tool_calls:

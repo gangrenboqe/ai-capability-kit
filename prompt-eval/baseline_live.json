@@ -1,0 +1,7 @@
+{
+  "passed": 12,
+  "total": 25,
+  "backend": "OpenAICompatModel（真实模型 deepseek-ai/DeepSeek-V3.2 @ http://127.0.0.1:20128/v1）",
+  "updated": "2026-10-29",
+  "note": "只能用 python regression.py --update-baseline 显式更新；回归检查绝不写此文件"
+}

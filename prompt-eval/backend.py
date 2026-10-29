@@ -242,7 +242,11 @@ class OpenAICompatModel:
             method="POST",
         )
         try:
-            with urllib.request.urlopen(req, timeout=60) as resp:
+            # 🔴 2026-10-29 修：本地回环端点**必须绕开本机代理**。
+            #    Windows 上 urllib 默认读注册表代理设置 → 127.0.0.1 的请求被丢给代理转发 → 502/500。
+            #    （同一现象曾让整轮 live 评测误判成"网关坏了"）
+            opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+            with opener.open(req, timeout=float(os.environ.get('AGENT_TIMEOUT_MS') or 180000) / 1000.0) as resp:
                 data = json.loads(resp.read().decode("utf-8"))
         except urllib.error.URLError as exc:
             raise BackendError(f"请求失败: {exc}") from exc
