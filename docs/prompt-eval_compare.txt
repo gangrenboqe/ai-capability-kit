@@ -1,6 +1,6 @@
-# Prompt 版本对比
+﻿# Prompt 版本对比
 
-- 时间：2026-10-11 21:25:23
+- 时间：2026-11-02 11:12:16
 - 后端：OfflineSimModel（离线确定性模拟，非真实 LLM）
 - 演进顺序为 v1 → v2 → v3_draft → v3（表格按名称排序，v3_draft 是实测变差后被回退的草稿）
 
@@ -40,3 +40,5 @@
 | D03 | ✗ | ✔ | ✔ | ✔ |
 | D04 | ✗ | ✔ | ✔ | ✔ |
 | D05 | ✗ | ✔ | ✔ | ✔ |
+
+报告已写入: E:\DSHPersonalAI\_publish_repos\ai-capability-kit\prompt-eval\out\compare.md

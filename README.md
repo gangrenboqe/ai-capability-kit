@@ -4,6 +4,22 @@
 
 ---
 
+## 三步跑起来（不需要任何 API key）
+
+```bash
+git clone https://github.com/gangrenboqe/ai-capability-kit.git && cd ai-capability-kit
+cd agent-tool-loop && python demo.py
+cd ../local-retrieval && python demo.py
+cd ../prompt-eval && python run.py --compare
+# → 三个工具各出一份真实运行结果（工具调用循环 / 检索召回 / 提示词四版对比）
+```
+
+Python 3.11 / 3.13 双版本验证通过，**依赖：无**（不需要 pip install）。
+三条命令的真实输出片段：[docs/agent-tool-loop_demo.txt](docs/agent-tool-loop_demo.txt) ·
+[docs/local-retrieval_demo.txt](docs/local-retrieval_demo.txt) ·
+[docs/prompt-eval_compare.txt](docs/prompt-eval_compare.txt)。
+陌生人复验记录见 [docs/STRANGER_REVIEW.md](docs/STRANGER_REVIEW.md)。
+
 > **协作方式说明**：本仓库的代码由设计者与 AI 编程助手协作完成——
 > 设计者负责定义需求、设定验收标准并逐项验证结果，代码由 AI 生成。
 > 文中所有数字均在真机实测；凡未实测的部分均已明确标注。

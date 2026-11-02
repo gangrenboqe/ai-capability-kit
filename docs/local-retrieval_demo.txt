@@ -1,0 +1,7 @@
+﻿# 本地检索 · 评测报告
+
+- 语料：12 篇（合成示例，无隐私）　索引库：data/retrieval.db
+- 建索引第一次：inserted=12 updated=0 empty=0
+- 建索引第二次（幂等验证）：inserted=**0** skipped=12（应为 0/12）
+- 召回（期望文档在 Top3）：**20/20**　Top1 命中：20/20
+完整报告已写入 E:\DSHPersonalAI\_publish_repos\ai-capability-kit\local-retrieval\out\eval_report.md
