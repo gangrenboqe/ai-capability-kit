@@ -1,5 +1,7 @@
 # AI 能力工具集（ai-capability-kit）
 
+[![tests](https://github.com/gangrenboqe/ai-capability-kit/actions/workflows/test.yml/badge.svg)](https://github.com/gangrenboqe/ai-capability-kit/actions/workflows/test.yml)
+
 > 三个工具回答同一类问题：**怎么证明一个 AI 功能真的能用，而不是"跑起来看着像"。**
 
 ---
