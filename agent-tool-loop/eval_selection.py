@@ -31,7 +31,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from agent_loop import OpenAICompatBackend, ScriptedBackend, run_loop  # noqa: E402
+from agent_loop import ModelBackend, OpenAICompatBackend, ScriptedBackend, run_loop  # noqa: E402
 from demo import seed_db  # noqa: E402
 from tools import build_registry  # noqa: E402
 
@@ -39,7 +39,7 @@ OFFLINE_BASELINE = PROJECT_ROOT / "baseline_offline.json"   # 在项目根，可
 LIVE_BASELINE = PROJECT_ROOT / "baseline_live.json"
 
 
-def make_backend():
+def make_backend() -> tuple[ModelBackend, str]:
     mode = (os.environ.get("PAI_EVAL_BACKEND") or "offline").strip().lower()
     if mode == "live":
         return OpenAICompatBackend(), "OpenAICompatBackend（真实模型，函数调用）"

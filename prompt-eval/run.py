@@ -30,7 +30,7 @@ OUT_DIR = ROOT / "out"
 _CATEGORY_NAMES = {"normal": "正常", "boundary": "边界", "exception": "异常", "adversarial": "对抗"}
 
 
-def make_backend():
+def make_backend() -> tuple[OfflineSimModel | OpenAICompatModel, str]:
     """按环境变量 PAI_EVAL_BACKEND 选后端：offline（默认，保回归确定性）| live（真实模型）。
 
     live 需要 AGENT_API_KEY / AGENT_BASE_URL / AGENT_MODEL（密钥只走环境变量，不落盘）。

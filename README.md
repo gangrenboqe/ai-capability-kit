@@ -53,12 +53,23 @@ cd prompt-eval && python run.py --compare
 **测试**（纯标准库，毫秒级）：
 
 ```bash
-cd agent-tool-loop && python -m unittest discover -s tests   # 70 项
+cd agent-tool-loop && python -m unittest discover -s tests   # 82 项（含评测判据 12 项专测）
 cd local-retrieval  && python -m unittest discover -s tests   # 32 项
 cd prompt-eval      && python -m unittest discover -s tests   # 48 项
 ```
 
 全部在 **Python 3.11 与 3.13 双版本**下验证通过。**依赖：无。**
+
+### 五分钟复现（从 clone 到看到效果）
+
+```bash
+git clone https://github.com/gangrenboqe/ai-capability-kit.git && cd ai-capability-kit
+cd agent-tool-loop && python demo.py        # 工具调用循环：3 轮真实循环，回答落 out/
+cd agent-tool-loop && python eval_selection.py --no-baseline   # 选对工具正确率：20/20（离线确定性）
+cd ../local-retrieval && python demo.py     # 检索召回：Top3 20/20 + 建索引幂等验证
+cd ../prompt-eval && python run.py --compare  # 提示词四版对比：v1 13 → v2 23 → v3_draft 18 → v3 25
+```
+（后三条为本批实测复跑过；命令里的 `cd` 各自进入子目录后执行。）
 
 ### v4 自动回归：提示词评测已进 CI，变差自动亮红灯
 
