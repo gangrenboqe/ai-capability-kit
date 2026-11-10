@@ -10,11 +10,14 @@
 ## 复验原文（命令 + 目录名，判据要求）
 
 ```
-PS C:\Users\Administrator\AppData\Local\Temp> git clone git@github.com:gangrenboqe/ai-capability-kit.git
+PS $env:TEMP> git clone git@github.com:gangrenboqe/ai-capability-kit.git
 Cloning into 'ai-capability-kit'...
 clone 后目录名: ai-capability-kit        ← git 默认取仓名，与 README 的 `cd ai-capability-kit` 一致
 README.md 存在: True
 ```
+
+> 🔄 2026-11-10（44 号工单）：原记录里的本机用户目录路径（`C:\Users\<用户名>\AppData\Local\Temp`）
+> 已替换为 `$env:TEMP` 环境变量写法——命令本身与结果不受影响。
 
 三条命令（照 README「三步跑起来」原文）：
 
