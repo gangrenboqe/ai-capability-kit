@@ -168,3 +168,9 @@ python regression.py --update-baseline  # 显式把本次成绩写为新基线�
 - 许可证：MIT
 - 三个工具之间**互不依赖**
 - 📋 **AI 能力边界清单**（AI 能做什么 / 不能做什么 / 七种翻车模式，17 条全部锚定真实事件）：正本在工作区 `portfolio/AI能力边界清单.md`，本仓库不重复正文
+
+## 许可证
+
+自 2026-11-13 起的版本适用 [PolyForm Noncommercial License 1.0.0](https://polyformproject.org/licenses/noncommercial/1.0.0)：可自由用于个人学习、研究、试验与非商业用途，**不得用于商业目的**。此前发布的版本适用 MIT。
+
+Required Notice: Copyright 2026 谢一竹 (https://github.com/gangrenboqe)
